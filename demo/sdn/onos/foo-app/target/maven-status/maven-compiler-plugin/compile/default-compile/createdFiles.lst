@@ -1,0 +1,6 @@
+org/foo/app/AppWebApplication.class
+org/foo/app/OsgiPropertyConstant$OsgiPropertyConstants.class
+org/foo/app/AppComponent.class
+org/foo/app/AppCommand.class
+org/foo/app/OsgiPropertyConstant.class
+org/foo/app/AppWebResource.class

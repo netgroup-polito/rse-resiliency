@@ -1,0 +1,69 @@
+version: '3'
+
+services:
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.0
+    container_name: es01
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - cluster.initial_master_nodes=es01
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.license.self_generated.type=trial 
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=true 
+      - xpack.security.http.ssl.key=/usr/share/elasticsearch/config/certificates/es01/es01.key
+      - xpack.security.http.ssl.certificate_authorities=/usr/share/elasticsearch/config/certificates/ca/ca.crt
+      - xpack.security.http.ssl.certificate=/usr/share/elasticsearch/config/certificates/es01/es01.crt
+      - xpack.security.transport.ssl.enabled=true 
+      - xpack.security.transport.ssl.verification_mode=certificate 
+      - xpack.security.transport.ssl.certificate_authorities=/usr/share/elasticsearch/config/certificates/ca/ca.crt
+      - xpack.security.transport.ssl.certificate=/usr/share/elasticsearch/config/certificates/es01/es01.crt
+      - xpack.security.transport.ssl.key=/usr/share/elasticsearch/config/certificates/es01/es01.key
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - data01:/usr/share/elasticsearch/data
+      - certs:/usr/share/elasticsearch/config/certificates
+    ports:
+      - 9200:9200
+    networks:
+      - elastic
+
+    healthcheck:
+      test: curl --cacert /usr/share/elasticsearch/config/certificates/ca/ca.crt -s https://localhost:9200 >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  kib01:
+    image: docker.elastic.co/kibana/kibana:7.12.0
+    container_name: kib01
+    ports:
+      - 5601:5601
+    environment:
+      SERVERNAME: localhost
+      ELASTICSEARCH_URL: https://es01:9200
+      ELASTICSEARCH_HOSTS: https://es01:9200
+      ELASTICSEARCH_USERNAME: kibana_system
+      ELASTICSEARCH_PASSWORD: iFB9yXAzm4i0wf5N9JFJ
+      ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES: /usr/share/elasticsearch/config/certificates/ca/ca.crt
+      SERVER_SSL_ENABLED: "true"
+      SERVER_SSL_KEY: /usr/share/elasticsearch/config/certificates/kib01/kib01.key
+      SERVER_SSL_CERTIFICATE: /usr/share/elasticsearch/config/certificates/kib01/kib01.crt
+      XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY: ee487136acc9d39887a3e9d9e670fb71
+    volumes:
+      - certs:/usr/share/elasticsearch/config/certificates
+    networks:
+      - elastic
+volumes:
+  data01:
+    driver: local
+  certs:
+    driver: local
+
+networks:
+  elastic:
+    driver: bridge

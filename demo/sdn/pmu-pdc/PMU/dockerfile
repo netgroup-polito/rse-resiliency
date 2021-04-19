@@ -1,0 +1,47 @@
+FROM ubuntu:18.04
+
+
+# Prevent apt from prompting the user for input during install/configuration
+ENV DEBIAN_FRONTEND=noninteractive
+
+#Install required libraries
+RUN  apt-get update && \
+     apt-get install -y glade && \
+      apt-get install -y ntp
+
+#Install wget, download iPDC, upack it and install executable
+RUN  apt-get install -y wget &&\
+     mkdir -p /tool/iPDC && \    
+     wget  https://sourceforge.net/projects/iitbpdc/files/iPDC-v1.3.1.tar.gz -P /tool/iPDC  && \
+     tar -xvf /tool/iPDC/iPDC-v1.3.1.tar.gz -C /tool/iPDC && \
+     rm /tool/iPDC/*.gz && \
+     cd /tool/iPDC/iPDC-v1.3.1/PMUSimulator-1.3.1/ && \
+     apt-get install -y libgtk2.0-dev &&\
+     make install .
+     
+## Aggiunte per eseguire packetbeat
+#RUN apt-get install -y libpcap0.8 ##forse questo non serve perchè mi pare che ubuntu lo ha di default
+RUN wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add -
+RUN apt-get install apt-transport-https
+RUN echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" | tee -a /etc/apt/sources.list.d/elastic-7.x.list
+RUN apt-get update && apt-get install packetbeat
+
+COPY packetbeat.yml /etc/packetbeat/
+COPY packetbeat.yml /usr/share/packetbeat/
+COPY packetbeat.yml /usr/share/packetbeat/bin/
+
+#RUN apt-get install -y systemd
+RUN chmod 777 -R /tool
+
+#AGGIUNTE PER HPING3 PER SIMULARE PING FLOOD ATTACK
+RUN apt-get update -y
+RUN apt-get install -y hping3
+RUN apt-get install -y iputils-ping
+
+# Define basic default enviroment variables
+ENV DISPLAY=:0 
+
+
+
+# CMD [ "executable", "parameter", ... ] form throws an error # Therefore, bash-like form is used
+CMD service packetbeat start && /tool/iPDC/iPDC-v1.3.1/PMUSimulator-1.3.1/./PMU

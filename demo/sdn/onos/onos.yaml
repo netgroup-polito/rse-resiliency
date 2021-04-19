@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: onos-demo
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      bb: onos
+  template:
+    metadata:
+      labels:
+        bb: onos
+    spec:
+      hostNetwork: true
+      containers:
+      - name: onos-container
+        image: onos-image:latest
+        imagePullPolicy: Never
+

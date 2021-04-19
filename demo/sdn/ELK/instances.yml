@@ -1,0 +1,14 @@
+instances:
+  - name: es01
+    dns:
+      - es01 
+      - localhost
+    ip:
+      - 192.168.101.7
+      
+  - name: 'kib01'
+    dns:
+      - kib01
+      - localhost
+    ip:
+      - 192.168.101.7
