@@ -1,0 +1,295 @@
+version: '3'
+
+# START FIRST GROUP TO DISPLAY PDC
+services:
+   vnc:
+     image: vnc
+     container_name: vnc
+     networks:      
+      net:
+         ipv4_address: 172.33.0.2
+   
+   sockify:
+     image: sockify
+     container_name: sockify
+     network_mode: service:vnc
+   
+   tiger:
+     image: tiger
+     container_name: tiger
+     network_mode: service:vnc
+     volumes:
+      - sharedVolumePDC:/tmp
+      
+   pdc:
+     image: milozappulla/pdc_sed
+     container_name: pdc
+     environment:
+       - TERM=xterm
+     networks:
+       pdc_net:                
+         ipv4_address: 172.23.0.2
+     volumes:
+       - sharedVolumePDC:/tmp
+       - /home/testing/Desktop/new_deploy/apps_services/config:/home/crownlabs/iPDC
+     ports:
+       - 14000:14000
+     depends_on:
+     - tiger
+ 
+   mysql:
+     image: milozappulla/mysql:custom
+     container_name: mysql
+     network_mode: service:pdc
+     environment:
+      - MYSQL_ROOT_PASSWORD=rootpass
+     volumes:
+      #- /home/testing/Desktop/new_deploy/apps_services/scripts:/docker-entrypoint-initdb.d:ro
+      - /home/testing/Desktop/new_deploy/apps_services/database:/var/lib/mysql
+      - sharedVolumeSocket:/var/run/mysqld
+     
+   db:
+     image: milozappulla/db_wait_localhost
+     container_name: db
+     network_mode: service:pdc
+     environment:
+       - TERM=xterm
+     volumes:
+      - sharedVolumeSocket:/var/run/mysqld
+     depends_on:
+      - mysql
+     command: sh -c "/wait"
+     environment:
+      - WAIT_HOSTS=localhost:3306
+      - WAIT_HOSTS_TIMEOUT=300
+      - WAIT_SLEEP_INTERVAL=15
+      - WAIT_HOST_CONNECT_TIMEOUT=15      
+
+
+# START SECOND GROUP TO DISPLAY PMU1
+   vnc1:
+     image: vnc
+     container_name: vnc1
+     networks:      
+      net1:
+         ipv4_address: 172.30.0.2
+   
+   sockify1:
+     image: sockify
+     container_name: sockify1
+     network_mode: service:vnc1
+   
+   tiger1:
+     image: tiger
+     container_name: tiger1
+     network_mode: service:vnc1
+     volumes:
+      - sharedVolumePMU1:/tmp
+      
+
+   pmu1:
+     image: milozappulla/pmu
+     container_name: pmu1
+     networks:
+       pmu_net1:                
+         ipv4_address: 172.20.0.4
+     environment:
+       - TERM=xterm
+     volumes:
+       - sharedVolumePMU1:/tmp
+     ports:
+       - 15001:15000
+     depends_on:
+       - tiger1
+
+
+
+# START THIRD GROUP TO DISPLAY PMU2
+   vnc2:
+     image: vnc
+     container_name: vnc2
+     networks:      
+      net2:
+         ipv4_address: 172.31.0.2
+   
+   sockify2:
+     image: sockify
+     container_name: sockify2
+     network_mode: service:vnc2
+   
+   tiger2:
+     image: tiger
+     container_name: tiger2
+     network_mode: service:vnc2
+     volumes:
+      - sharedVolumePMU2:/tmp
+      
+   pmu2:
+     image: milozappulla/pmu
+     container_name: pmu2
+     networks:
+       pmu_net2:                
+         ipv4_address: 172.21.0.4
+     environment:
+       - TERM=xterm
+     volumes:
+       - sharedVolumePMU2:/tmp
+     ports:
+       - 15002:15000
+     depends_on:
+       - tiger2
+
+# START THIRD GROUP TO DISPLAY PMU3
+   vnc3:
+     image: vnc
+     container_name: vnc3
+     networks:      
+      net3:
+         ipv4_address: 172.32.0.2
+   
+   sockify3:
+     image: sockify
+     container_name: sockify3
+     network_mode: service:vnc3
+   
+   tiger3:
+     image: tiger
+     container_name: tiger3
+     network_mode: service:vnc3
+     volumes:
+      - sharedVolumePMU3:/tmp
+      
+   pmu3:
+     image: milozappulla/pmu
+     container_name: pmu3
+     networks:
+       pmu_net3:                
+         ipv4_address: 172.22.0.4
+     environment:
+       - TERM=xterm
+     volumes:
+       - sharedVolumePMU3:/tmp
+     ports:
+       - 15003:15000
+     depends_on:
+       - tiger3
+
+# START FIFTH GROUP TO DISPLAY PDC_H
+   vnc4:
+     image: vnc
+     container_name: vnc4
+     networks:      
+      net4:
+         ipv4_address: 172.34.0.2
+   
+   sockify4:
+     image: sockify
+     container_name: sockify4
+     network_mode: service:vnc4
+   
+   tiger4:
+     image: tiger
+     container_name: tiger4
+     network_mode: service:vnc4
+     volumes:
+      - sharedVolumePDC_H:/tmp
+
+
+  
+   pdcH:
+     image: milozappulla/pdc_sed
+     container_name: pdcH
+     networks:
+       pdcH_net:                
+         ipv4_address: 172.24.0.4
+     environment:
+       - TERM=xterm
+     volumes:
+       - sharedVolumePDC_H:/tmp
+     ports:
+       - 14001:14000
+     depends_on:
+       - tiger4
+       
+   mysqlH:
+     image: milozappulla/mysql:custom
+     container_name: mysqlH
+     network_mode: service:pdcH
+     environment:
+      - MYSQL_ROOT_PASSWORD=rootpass
+     volumes:
+      #- /home/testing/Desktop/new_deploy/apps_services/scriptsH:/docker-entrypoint-initdb.d:ro
+      - /home/testing/Desktop/new_deploy/apps_services/databaseH:/var/lib/mysql
+      - sharedVolumeSocketH:/var/run/mysqld
+
+   dbH:
+     image: milozappulla/db_wait_localhost 
+     container_name: dbH
+     network_mode: service:pdcH
+     environment:
+       - TERM=xterm
+     volumes:
+      - sharedVolumeSocketH:/var/run/mysqld
+     depends_on:
+      - mysqlH
+     command: sh -c "/wait"
+     environment:
+      - WAIT_HOSTS=localhost:3306
+      - WAIT_HOSTS_TIMEOUT=300
+      - WAIT_SLEEP_INTERVAL=15
+      - WAIT_HOST_CONNECT_TIMEOUT=15        
+
+       
+networks:    
+   net:
+     ipam:  
+       config:      
+          - subnet: 172.33.0.0/16  #USED TO DISPLAY PDC
+   net1:
+     ipam:  
+       config:      
+          - subnet: 172.30.0.0/16  #USED TO DISPLAY PMU1
+   net2:
+     ipam:  
+       config:      
+          - subnet: 172.31.0.0/16  #USED TO DISPLAY PMU2
+   net3:
+     ipam:  
+       config:      
+          - subnet: 172.32.0.0/16  #USED TO DISPLAY PMU3
+   net4:
+     ipam:  
+       config:     
+          - subnet: 172.34.0.0/16  #USED TO DISPLAY PDC_H
+   pdcH_net:
+     ipam:  
+       config:      
+          - subnet: 172.24.0.0/16  #PDC_H NETWORK
+   pdc_net:
+     ipam:  
+       config:      
+          - subnet: 172.23.0.0/16  #PDC NETWORK
+   pmu_net1:
+     ipam:  
+       config:      
+          - subnet: 172.20.0.0/16  #PMU1 NETWORK
+   pmu_net2:
+     ipam:  
+       config:      
+          - subnet: 172.21.0.0/16  #PMU2 NETWORK
+   pmu_net3:
+     ipam:  
+       config:      
+          - subnet: 172.22.0.0/16  #PMU3 NETWORK
+   
+
+volumes:
+  sharedVolumePDC: {}
+  sharedVolumePDC_H: {}
+  sharedVolumePMU1: {}
+  sharedVolumePMU2: {}
+  sharedVolumePMU3: {}
+  sharedVolumeSocket: {}
+  sharedVolumeSocketH: {}
+  
+  

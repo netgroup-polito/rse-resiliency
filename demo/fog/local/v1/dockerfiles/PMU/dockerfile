@@ -1,0 +1,45 @@
+FROM ubuntu:18.04
+
+
+# Prevent apt from prompting the user for input during install/configuration
+ENV DEBIAN_FRONTEND=noninteractive
+
+#Install required libraries
+RUN  apt-get update && \
+     apt-get install -y glade && \
+      apt-get install -y ntp
+
+#Install wget, download iPDC, upack it and install executable
+RUN  apt-get install -y wget &&\
+     mkdir -p /tool/iPDC && \    
+     wget  https://sourceforge.net/projects/iitbpdc/files/iPDC-v1.3.1.tar.gz -P /tool/iPDC  && \
+     tar -xvf /tool/iPDC/iPDC-v1.3.1.tar.gz -C /tool/iPDC && \
+     rm /tool/iPDC/*.gz && \
+     cd /tool/iPDC/iPDC-v1.3.1/PMUSimulator-1.3.1/ && \
+     apt-get install -y libgtk2.0-dev &&\
+     make install .
+
+RUN chmod 777 -R /tool
+
+# Define user and user id default arguments
+ARG USER=crownlabs
+ARG UID=1010
+
+# Define basic default enviroment variables
+ENV DISPLAY=:0 \
+  USER=${USER} \
+  HOME=/home/$USER
+
+# Create new user and set a set a valid shell for them
+RUN useradd -ms /bin/bash -u ${UID} $USER
+
+
+# Set permissions on user home
+RUN chown -R $USER:$USER $HOME
+
+# Set the user to use
+USER $USER
+
+
+# CMD [ "executable", "parameter", ... ] form throws an error # Therefore, bash-like form is used
+CMD /tool/iPDC/iPDC-v1.3.1/PMUSimulator-1.3.1/./PMU

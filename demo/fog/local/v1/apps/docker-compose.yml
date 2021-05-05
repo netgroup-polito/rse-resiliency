@@ -1,0 +1,132 @@
+version: '3'
+services:
+#PDC and DB on network 'pdc_net' created in first docker-compose services; they are in same network under different ip address (LOCALHOST is an alternative)
+   db:
+     image: milozappulla/db_without_wait
+     container_name: db
+     networks:
+      services_pdc_net:                
+         ipv4_address: 172.23.0.3
+#     restart: always
+     environment:
+       - TERM=xterm
+     expose:
+       - 9000/udp
+   
+   pdc:
+     image: milozappulla/pdc_sed
+     container_name: pdc
+     networks:
+       services_pdc_net:                
+         ipv4_address: 172.23.0.4
+     environment:
+       - TERM=xterm
+     volumes:
+       - services_sharedVolumePDC:/tmp
+       - /home/testing/Desktop/old_deploy/apps/PDCconfig:/home/crownlabs/iPDC
+     ports:
+       - 14000:14000
+
+#PDC and DB higher on network 'pdc_netH' created in docker-compose services; they are in same network under different ip address (LOCALHOST is an alternative)
+   dbH:
+     image: milozappulla/dbh_without_wait
+     container_name: dbH
+     networks:
+      services_pdcH_net:                
+         ipv4_address: 172.24.0.3
+     environment:
+       - TERM=xterm
+     expose:
+       - 9000/udp
+   
+   pdcH:
+     image: milozappulla/pdc_sed
+     container_name: pdcH
+     networks:
+       services_pdcH_net:                
+         ipv4_address: 172.24.0.4
+     environment:
+       - TERM=xterm
+     volumes:
+       - services_sharedVolumePDC_H:/tmp
+       - /home/testing/Desktop/old_deploy/apps/PDCconfig:/home/crownlabs/iPDC       
+     ports:
+       - 14001:14000
+       
+#PMU1 on network 'pmu_net1' created in second docker-compose
+   pmu1:
+     image: milozappulla/pmu
+     container_name: pmu1
+     networks:
+       pmu_net1:                
+         ipv4_address: 172.20.0.4
+     environment:
+       - TERM=xterm
+     volumes:
+       - services_sharedVolumePMU1:/tmp
+       - /home/testing/Desktop/old_deploy/apps/PMU1config:/home/crownlabs/iPDC/PMU      
+     ports:
+       - 15001:15000 
+       
+#PMU2 on network 'pmu_net2' created in second docker-compose
+   pmu2:
+     image: milozappulla/pmu
+     container_name: pmu2
+     networks:
+       pmu_net2:                
+         ipv4_address: 172.21.0.4
+     environment:
+       - TERM=xterm
+     volumes:
+       - services_sharedVolumePMU2:/tmp
+       - /home/testing/Desktop/old_deploy/apps/PMU2config:/home/crownlabs/iPDC/PMU       
+     ports:
+       - 15002:15000
+       
+#PMU3 on network 'pmu_net3' created in second docker-compose
+   pmu3:
+     image: milozappulla/pmu
+     container_name: pmu3
+     networks:
+       pmu_net3:                
+         ipv4_address: 172.22.0.4
+     environment:
+       - TERM=xterm
+     volumes:
+       - services_sharedVolumePMU3:/tmp
+       - /home/testing/Desktop/old_deploy/apps/PMU3config:/home/crownlabs/iPDC/PMU      
+     ports:
+       - 15003:15000
+
+networks:    
+    services_pdc_net: #PDC NETWORK
+      external: true   
+    services_pdcH_net: #PDC_H NETWORK
+      external: true    
+    pmu_net1:
+     ipam:  
+       config:      
+          - subnet: 172.20.0.0/16  #PMU1 NETWORK
+    pmu_net2:
+     ipam:  
+       config:      
+          - subnet: 172.21.0.0/16  #PMU2 NETWORK
+    pmu_net3:
+     ipam:  
+       config:      
+          - subnet: 172.22.0.0/16  #PMU3 NETWORK
+
+
+volumes:
+   services_sharedVolumePDC:
+      external: true
+   services_sharedVolumePDC_H:
+      external: true
+   services_sharedVolumePMU1:
+      external: true
+   services_sharedVolumePMU2:
+      external: true
+   services_sharedVolumePMU3:
+      external: true
+   
+

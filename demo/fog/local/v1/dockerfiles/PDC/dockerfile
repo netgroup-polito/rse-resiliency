@@ -1,0 +1,115 @@
+FROM ubuntu:18.04
+
+
+# Prevent apt from prompting the user for input during install/configuration
+ENV DEBIAN_FRONTEND=noninteractive
+
+#Install required libraries
+RUN  apt-get update && \
+     apt-get install -y glade && \
+      apt-get install -y ntp
+
+#Install wget, download iPDC, upack it and install iPDC executable
+RUN  apt-get install -y wget &&\
+     mkdir -p /tool/iPDC && \    
+     wget  https://sourceforge.net/projects/iitbpdc/files/iPDC-v1.3.1.tar.gz -P /tool/iPDC  && \
+     tar -xvf /tool/iPDC/iPDC-v1.3.1.tar.gz -C /tool/iPDC && \
+     rm /tool/iPDC/*.gz && \
+     cd /tool/iPDC/iPDC-v1.3.1/iPDC-1.3.1/ && \
+     apt-get install -y libgtk2.0-dev &&\ 
+     
+    
+     ### PER EVITARE ILCONTROLLO SULLA TCP PORT E AVERE LA POSSIBILITÀ DI DARE LA PORTA 14000 A TUTTI I PDC 
+    
+     sed -i '689d' ./ipdcGui.c && \
+     sed -i '689i\else if(!isNumber((char *)text2) || !(atoi(text2) > 1500 && atoi(text2) < 65535))' ipdcGui.c && \
+     
+      ### GUI PER MOSTRARE LA FINESTRA UPDATE SULLA BASE DEL VALORE DI RITORNO DELL' ADD PMU
+     
+     sed -i '714d' ./ipdcGui.c && \
+     sed -i '714i\else if(ret==1)' ipdcGui.c && \ 
+     sed -i '720d' ./ipdcGui.c && \
+     sed -i '720i\else if(ret==2){' ipdcGui.c && \
+     sed -i '721i\gtk_widget_destroy(add_pmu_window);' ipdcGui.c && \
+     sed -i '722i\errmsg1=" Source Device Successfully Updated. ";' ipdcGui.c && \
+     sed -i '723i\validation_result (errmsg1);' ipdcGui.c && \ 
+     sed -i '724i\return 1;' ipdcGui.c && \
+     sed -i '725i\}' ipdcGui.c && \
+     sed -i '726i\}' ipdcGui.c && \
+     
+     
+
+     ### CODICE PER APPORTARE UNA RIMOZIONE E SUCCESSIVA INSERT DELLA ENTRY == UPDATE (FILE NEW_PMU_OR_PDC.C)
+     
+     sed -i '108i\struct Lower_Layer_Details *temp_ptr;' new_pmu_or_pdc.c && \
+     sed -i '112d' ./new_pmu_or_pdc.c && \
+     sed -i '139d' ./new_pmu_or_pdc.c && \
+     sed -i '140d' ./new_pmu_or_pdc.c && \
+     sed -i '139i\if(strcmp(temp_ptr->ip,ip)==0 && strcmp(temp_ptr->protocol,protocol)==0 && temp_ptr->port == atoi(port)){' new_pmu_or_pdc.c && \     
+     sed -i '140i\printf("%s %s is already in the LowerDevices list Enter another PMU",pmuid,protocol);' new_pmu_or_pdc.c && \ 
+     sed -i '141i\return 1;' new_pmu_or_pdc.c && \
+     sed -i '142i\ }' new_pmu_or_pdc.c && \
+     sed -i '143i\ else{ ' new_pmu_or_pdc.c && \
+     sed -i '144i\remove_Lower_Node((char*)pmuid,(char*)protocol);' new_pmu_or_pdc.c && \
+     sed -i '145i\ printf("    %s %s is REMOVED",pmuid,protocol);' new_pmu_or_pdc.c && \
+     sed -i '146i\struct Lower_Layer_Details *temp_pmu;' new_pmu_or_pdc.c && \
+     sed -i '147i\temp_pmu = malloc(sizeof(struct Lower_Layer_Details));' new_pmu_or_pdc.c && \
+     sed -i '148i\ temp_pmu->pmuid = atoi(pmuid);' new_pmu_or_pdc.c && \
+     sed -i '149i\strcpy(temp_pmu->ip,ip);' new_pmu_or_pdc.c && \
+     sed -i '150i\temp_pmu->port = atoi(port); ' new_pmu_or_pdc.c && \
+     sed -i '151i\strcpy(temp_pmu->protocol,protocol);' new_pmu_or_pdc.c&& \
+     sed -i '152i\temp_pmu->protocol[3] = '\0';' new_pmu_or_pdc.c && \
+     sed -i '153i\temp_pmu->up = 1;' new_pmu_or_pdc.c && \
+     sed -i '154i\temp_pmu->data_transmission_off = 0;' new_pmu_or_pdc.c&& \
+     sed -i '155i\temp_pmu->pmu_remove = 0;' new_pmu_or_pdc.c && \
+     sed -i '156i\temp_pmu->request_cfg_frame = 0;' new_pmu_or_pdc.c && \
+     sed -i '157i\temp_pmu->next = NULL;' new_pmu_or_pdc.c && \
+     sed -i '158i\temp_pmu->prev = NULL;' new_pmu_or_pdc.c && \
+     sed -i '159i\pthread_t t;' new_pmu_or_pdc.c && \
+     sed -i '160i\ if(!strncasecmp(protocol,"TCP",3)) {' new_pmu_or_pdc.c && \
+     sed -i '161i\if((err = pthread_create(&t,&attr,connect_pmu_tcp,(void *)temp_pmu))) {' new_pmu_or_pdc.c && \   
+     sed -i '162i\perror(strerror(err));' new_pmu_or_pdc.c && \
+     sed -i '163i\exit(1);' new_pmu_or_pdc.c && \
+     sed -i '164i\}' new_pmu_or_pdc.c && \               
+     sed -i '165i\}' new_pmu_or_pdc.c && \
+     sed -i '166i\struct Upper_Layer_Details *temp_pdc = ULfirst;' new_pmu_or_pdc.c && \
+     sed -i '167i\pthread_mutex_lock(&mutex_Upper_Layer_Details);' new_pmu_or_pdc.c && \               
+     sed -i '168i\while(temp_pdc != NULL ) {' new_pmu_or_pdc.c && \
+     sed -i '169i\temp_pdc->config_change = 1;' new_pmu_or_pdc.c && \
+     sed -i '170i\temp_pdc = temp_pdc->next;' new_pmu_or_pdc.c && \
+     sed -i '171i\}' new_pmu_or_pdc.c && \
+     sed -i '172i\ pthread_mutex_unlock(&mutex_Upper_Layer_Details);' new_pmu_or_pdc.c && \
+     sed -i '173i\return 2;' new_pmu_or_pdc.c && \               
+     sed -i '174i\}' new_pmu_or_pdc.c      &&\
+     
+     make install
+     
+   
+     
+#RUN apt install -y nano
+          
+     
+
+RUN chmod 777 -R /tool
+
+# Define user and user id default arguments
+ARG USER=crownlabs
+ARG UID=1010
+
+# Define basic default enviroment variables
+ENV DISPLAY=:0 \
+  USER=${USER} \
+  HOME=/home/$USER
+
+# Create new user and set a set a valid shell for them
+RUN useradd -ms /bin/bash -u ${UID} $USER
+
+
+# Set permissions on user home
+RUN chown -R $USER:$USER $HOME
+
+# Set the user to use
+USER $USER
+
+# CMD [ "executable", "parameter", ... ] form throws an error # Therefore, bash-like form is used
+CMD /tool/iPDC/iPDC-v1.3.1/iPDC-1.3.1/./iPDC 
