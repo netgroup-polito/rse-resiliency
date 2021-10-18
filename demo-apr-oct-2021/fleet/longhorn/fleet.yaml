@@ -1,0 +1,60 @@
+# The default namespace to be applied to resources. This field is not used to
+# enforce or lock down the deployment to a specific namespace, but instead
+# provide the default value of the namespace field if one is not specified
+# in the manifests.
+# Default: default
+defaultNamespace: longhorn-system
+
+helm:
+  # Use a custom location for the Helm chart. This can refer to any go-getter URL.
+  # This allows one to download charts from most any location.  Also know that
+  # go-getter URL supports adding a digest to validate the download. If repo
+  # is set below this field is the name of the chart to lookup
+  chart: https://github.com/longhorn/charts/releases/download/longhorn-1.2.0/longhorn-1.2.0.tgz
+  # A custom release name to deploy the chart as. If not specified a release name
+  # will be generated.
+  releaseName: longhorn
+  # Path to any values files that need to be passed to helm during install
+  valuesFiles:
+    - longhorn-values.yaml
+  # Override immutable resources. This could be dangerous.
+  force: false
+
+# A paused bundle will not update downstream clusters but instead mark the bundle
+# as OutOfSync. On can the manually confirm that a bundle should be deployed to
+# the downstream clusters.
+# Default: false
+paused: false
+
+# Target customization are used to determine how resources should be modified per target
+# Targets are evaluated in order and the first one to match a cluster is used for that cluster.
+targetCustomizations:
+# The name of target. If not specified a default name of the format "target000"
+# will be used. This value is mostly for display
+- name: primary-station
+  clusterSelector:
+    matchLabels:
+      site: primary-station
+  # A selector used to match cluster groups.
+  clusterGroupSelector:
+    matchLabels:
+      area: A
+      #region: us-east
+  # A specific clusterGroup by name that will be selected
+  clusterGroup: area-a
+
+- name: secondary-station
+  # A selector used to match clusters.  The structure is the standard
+  # metav1.LabelSelector format. If clusterGroupSelector or clusterGroup is specified,
+  # clusterSelector will be used only to further refine the selection after
+  # clusterGroupSelector and clusterGroup is evaluated.
+  clusterSelector:
+    matchLabels:
+      site: secondary-station
+  # A selector used to match cluster groups.
+  clusterGroupSelector:
+    matchLabels:
+      area: A
+      #region: us-east
+  # A specific clusterGroup by name that will be selected
+  clusterGroup: area-a

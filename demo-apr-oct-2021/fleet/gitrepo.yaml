@@ -1,0 +1,38 @@
+kind: GitRepo
+apiVersion: fleet.cattle.io/v1alpha1
+metadata:
+  name: rse
+  namespace: clusters
+spec:
+  repo: git@github.com:claudiolor/demo-openPDC.git
+  paths:
+  - fleet/longhorn
+  - fleet/demo
+  branch: main
+  clientSecretName: github-key
+
+  # Targets are evaluated in order and the first one to match is used. If
+  # no targets match then the evaluated cluster will not be deployed to.
+  targets:
+  # The name of target. This value is largely for display and logging.
+  # If not specified a default name of the format "target000" will be used
+  - name: primary-station
+    # A selector used to match clusters.  The structure is the standard
+    # metav1.LabelSelector format. If clusterGroupSelector or clusterGroup is specified,
+    # clusterSelector will be used only to further refine the selection after
+    # clusterGroupSelector and clusterGroup is evaluated.
+    clusterSelector:
+      matchLabels:
+        site: primary-station
+    clusterGroup: italy-area-a
+
+  - name: secondary-station
+    # A selector used to match clusters.  The structure is the standard
+    # metav1.LabelSelector format. If clusterGroupSelector or clusterGroup is specified,
+    # clusterSelector will be used only to further refine the selection after
+    # clusterGroupSelector and clusterGroup is evaluated.
+    clusterSelector:
+      matchLabels:
+        site: secondary-station
+    # A specific clusterGroup by name that will be selected
+    clusterGroup: italy-area-a

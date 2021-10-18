@@ -1,0 +1,169 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pdc-pmu1-adapter-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 2Ki
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pdc-pmu2-adapter-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 2Ki
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pdc-pmu3-adapter-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 2Ki
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pdc-pmu1-adapter
+spec:
+  selector:
+    matchLabels:
+      app: pdc-pmu1-adapter
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: pdc-pmu1-adapter
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: pdc-pmu1-adapter
+          image: claudious96/pdc-mqtt-adapter
+          args: ["1", "100",
+                "-b", "my-vernemq"]
+          volumeMounts:
+          - name: pdc-pmu1-adapter-pvc
+            mountPath: /adapter/cfg
+      volumes:
+      - name: pdc-pmu1-adapter-pvc
+        persistentVolumeClaim:
+          claimName: pdc-pmu1-adapter-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pdc-pmu2-adapter
+spec:
+  selector:
+    matchLabels:
+      app: pdc-pmu2-adapter
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: pdc-pmu2-adapter
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: pdc-pmu2-adapter
+          image: claudious96/pdc-mqtt-adapter
+          args: ["2", "200",
+                "-b", "my-vernemq"]
+          volumeMounts:
+          - name: pdc-pmu2-adapter-pvc
+            mountPath: /adapter/cfg
+      volumes:
+      - name: pdc-pmu2-adapter-pvc
+        persistentVolumeClaim:
+          claimName: pdc-pmu2-adapter-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pdc-pmu3-adapter
+spec:
+  selector:
+    matchLabels:
+      app: pdc-pmu3-adapter
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: pdc-pmu3-adapter
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: pdc-pmu3-adapter
+          image: claudious96/pdc-mqtt-adapter
+          args: ["3", "300",
+                "-b", "my-vernemq"]
+          volumeMounts:
+          - name: pdc-pmu3-adapter-pvc
+            mountPath: /adapter/cfg
+      volumes:
+      - name: pdc-pmu3-adapter-pvc
+        persistentVolumeClaim:
+          claimName: pdc-pmu3-adapter-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pdc-pmu1-adapter
+  labels:
+    name: pdc-pmu1-adapter
+spec:
+  type: NodePort
+  ports:
+    - port: 4712
+      targetPort: 4712
+      nodePort: 30112
+  selector:
+    app: pdc-pmu1-adapter
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pdc-pmu2-adapter
+  labels:
+    name: pdc-pmu2-adapter
+spec:
+  type: NodePort
+  ports:
+    - port: 4712
+      targetPort: 4712
+      nodePort: 30212
+  selector:
+    app: pdc-pmu2-adapter
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pdc-pmu3-adapter
+  labels:
+    name: pdc-pmu3-adapter
+spec:
+  type: NodePort
+  ports:
+    - port: 4712
+      targetPort: 4712
+      nodePort: 30312
+  selector:
+    app: pdc-pmu3-adapter
+

@@ -1,0 +1,16 @@
+replicaCount: 2
+persistentVolume:
+  enabled: true
+  storageClass: longhorn
+  size: 256Mi
+additionalEnv:
+  - name: DOCKER_VERNEMQ_ALLOW_ANONYMOUS
+    value: "on"
+  - name: DOCKER_VERNEMQ_ACCEPT_EULA
+    value: "yes"
+  # This configuration tells VerneMQ to save at most 10000 messages not 
+  # already delivered. With a message rate of 25 sychrophasors per second and a single PMU,
+  # VerneMQ can store messages for about 6 minutes before starting loosing them.
+  # Setting this value as -1, a unlimited number of messages is stored.
+  - name: DOCKER_VERNEMQ_MAX_OFFLINE_MESSAGES
+    value: "10000"

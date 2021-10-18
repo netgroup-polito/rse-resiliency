@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pmu1-adapter
+  labels:
+    name: pmu1-adapter
+spec:
+  containers:
+    - name: pmu1-adapter
+      image: claudious96/pmu-mqtt-adapter
+      args: ["-b", "my-vernemq",
+             "-c", "pmu-1",
+             "-p", "4712"]
+  restartPolicy: OnFailure
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pmu2-adapter
+  labels:
+    name: pmu2-adapter
+spec:
+  containers:
+    - name: pmu2-adapter
+      image: claudious96/pmu-mqtt-adapter
+      args: ["-b", "my-vernemq",
+             "-c", "pmu-2",
+             "-p", "4712"]
+  restartPolicy: OnFailure
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pmu3-adapter
+  labels:
+    name: pmu3-adapter
+spec:
+  containers:
+    - name: pmu3-adapter
+      image: claudious96/pmu-mqtt-adapter
+      args: ["-b", "my-vernemq",
+             "-c", "pmu-3",
+             "-p", "4712"]
+  restartPolicy: OnFailure
+

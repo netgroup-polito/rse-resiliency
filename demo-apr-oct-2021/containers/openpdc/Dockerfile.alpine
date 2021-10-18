@@ -1,0 +1,47 @@
+FROM mono:6.12.0 as builder
+
+COPY ./packages.config ./openPDC/packages.config
+
+COPY ./install-openPDC.sh ./openPDC/install-openPDC.sh
+
+RUN apt update && apt install wget unzip nuget -y --no-install-recommends
+
+RUN cd ./openPDC && chmod +x ./install-openPDC.sh && ./install-openPDC.sh
+
+FROM alpine:3.13
+
+RUN addgroup polito && adduser --disabled-password --ingroup polito --no-create-home polito
+
+RUN apk add --no-cache mono --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing && \
+    apk add --no-cache --virtual=.build-dependencies ca-certificates && \
+    cert-sync /etc/ssl/certs/ca-certificates.crt && \
+    apk del .build-dependencies
+
+COPY --from=builder  --chown=polito  /opt/openPDC /opt/openPDC
+    
+RUN wget https://dev.mysql.com/get/Downloads/Connector-Net/mysql-connector-net-8.0.25-noinstall.zip && \
+    unzip mysql-connector-net-8.0.25-noinstall.zip -d connector && \
+    cd connector/v4.8 && \
+    # fix delayed signature of a package
+    sn -k keyPair.snk && \
+    ikdasm System.Runtime.CompilerServices.Unsafe.dll -out && \
+    ilasm out /dll /key=keyPair.snk /output:System.Runtime.CompilerServices.Unsafe.dll && \
+    rm libzstd.dll out keyPair.snk && \
+    apk add --no-cache zstd && \
+    cp ./* /opt/openPDC/ && \
+    ln -s /lib/libz.so.1 /opt/openPDC/libz.so && \
+    cd / && rm -rf mysql-connector-net-8.0.25-noinstall.zip connector
+
+COPY init.sh init.sh
+
+COPY liveness.sh.alpine liveness.sh
+
+RUN chmod +x init.sh && chmod +x liveness.sh
+
+COPY openPDC.exe.config.template openPDC.exe.config.template 
+
+RUN apk add --no-cache screen
+
+USER polito
+
+CMD ["./init.sh"]

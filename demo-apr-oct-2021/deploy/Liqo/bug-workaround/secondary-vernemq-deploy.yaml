@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: secondary-vernemq
+  labels:
+    app: secondary-vernemq
+spec:
+  serviceName: vernemq
+  replicas: 2
+  selector:
+    matchLabels:
+      app: secondary-vernemq
+  template:
+    metadata:
+      labels:
+        app: secondary-vernemq
+    spec:
+      nodeName: PutHereYourClusterLiqoName
+      containers:
+      - name: docker-vernemq
+        image: vernemq/vernemq:1.12.3-alpine
+        ports:
+          - containerPort: 1883
+            name: mqtt-port
+          - containerPort: 8080
+            name: websocket-port
+          - containerPort: 8888
+            name: http-port
+          - containerPort: 4369
+            name: epmd-port
+          - containerPort: 44053
+            name: vmq-port
+        env:
+        - name: DOCKER_VERNEMQ_ACCEPT_EULA
+          value: "yes"
+        - name: DOCKER_VERNEMQ_ALLOW_ANONYMOUS
+          value: "on"
+        - name: DOCKER_VERNEMQ_DISCOVERY_KUBERNETES
+          value: "0"
+        - name: MY_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+---
+# Expose all the VerneMQ instances with a LB
+kind: Service
+apiVersion: v1
+metadata:
+  name: secondary-vernemq-0
+spec:
+  selector:
+    app: secondary-vernemq
+  ports:
+  - name: mqtt
+    protocol: TCP
+    port: 1883
+    targetPort: 1883
+  - name: websocket
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+  type: ClusterIP
+---
+# Expose each single VerneMQ instance
+apiVersion: v1
+kind: Service
+metadata:
+  name: secondary-vernemq-0
+spec:
+  type: ClusterIP
+  ports:
+    - name: epmd-port
+      port: 4369
+    - name: vmq-port
+      port: 44053
+    - name: disc
+      port: 9100
+  selector:
+     statefulset.kubernetes.io/pod-name: secondary-vernemq-0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: secondary-vernemq-1
+spec:
+  type: ClusterIP
+  ports:
+    - name: epmd-port
+      port: 4369
+    - name: vmq-port
+      port: 44053
+    - name: disc
+      port: 9100
+  selector:
+     statefulset.kubernetes.io/pod-name: secondary-vernemq-1
