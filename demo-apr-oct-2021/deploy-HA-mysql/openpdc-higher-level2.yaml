@@ -1,0 +1,85 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openpdc-higher
+spec:
+  selector:
+    matchLabels:
+      app: openpdc-high
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: openpdc-high
+    spec:
+      initContainers:
+      - name: openpdc-init
+        image: dockerseba5/openpdc-init:latest
+        env:
+            - name: DB_ROOTPASS
+              valueFrom:
+                secretKeyRef:
+                  name: my-cluster-secrets
+                  key: root
+            - name: DB_USER
+              value: openpdch
+            - name: DB_PASS
+              value: password
+            - name: DB_NAME
+              value: higher
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_URL
+              value: cluster1-haproxy.pxc.svc.cluster.local
+      containers:
+      - name: openpdc
+        image: claudious96/openpdc:latest
+        env:
+            - name: DB_USER
+              value: openpdch
+            - name: DB_PASS
+              value: password
+            - name: DB_NAME
+              value: higher
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_URL
+              value: cluster1-haproxy.pxc.svc.cluster.local
+            - name: NODE_ID
+              value: 80104a12-a0de-435a-aa74-c93bade70a24
+        livenessProbe:
+          exec:
+            command:
+                - /bin/sh
+                - liveness.sh
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        ports:
+        - name: datapublisher
+          containerPort: 6165
+          protocol: TCP
+        - name: console
+          containerPort: 8500
+          protocol: TCP
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: openpdc-high
+spec:
+  type: NodePort
+  ports:
+    - name: console
+      port: 8500
+      targetPort: 8500
+      nodePort: 30185
+    - name: datapublisher
+      port: 6165
+      targetPort: 6165
+      nodePort: 30165
+  selector:
+    app: openpdc-high
