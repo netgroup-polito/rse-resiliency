@@ -5,7 +5,7 @@
 - Once the PDCs are configured, you can delete Operator's deployment.
 
 - pmuLiveness.yaml contains a Liveness Probe for the PMU.
-- PDCs configuration (in the yaml file) is slightly different from previous one. 
+- PDC configuration (in the yaml file) is slightly different from previous one. 
 
 Nota:
 - Folder [containers](./containers) contains an image of openpdc-init slightly different (it satisfies the primary key limit).
