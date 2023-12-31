@@ -16,12 +16,12 @@ spec:
     spec:
       initContainers:
       - name: openpdc-init
-        image: dockerseba5/openpdc-init:latest
+        image: riccardo170697/test-openpdc-init:13
         env:
             - name: DB_ROOTPASS
               valueFrom:
                 secretKeyRef:
-                  name: my-cluster-secrets
+                  name: cluster1-secrets
                   key: root
             - name: DB_USER
               value: openpdc
@@ -32,7 +32,7 @@ spec:
             - name: DB_PORT
               value: "3306"
             - name: DB_URL
-              value: cluster1-haproxy.pxc.svc.cluster.local
+              value: cluster1-haproxy.default.svc.cluster.local
             - name: SAMPLE_DATASET
               value: "true"
       containers:
@@ -48,7 +48,7 @@ spec:
             - name: DB_PORT
               value: "3306"
             - name: DB_URL
-              value: cluster1-haproxy.pxc.svc.cluster.local
+              value: cluster1-haproxy.default.svc.cluster.local
             - name: NODE_ID
               value: e7a5235d-cb6f-4864-a96e-a8686f36e599
         livenessProbe:

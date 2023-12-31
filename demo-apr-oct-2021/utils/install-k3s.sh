@@ -35,7 +35,7 @@ echo "Using token \"$DEMO_K3S_TOKEN\""
 
 if test $IS_WORKER = 0 -a $IS_MASTER = 1 -a $MASTER_IP = 0; then
   echo "Setting up first k3s master"
-  curl -sfL https://get.k3s.io | K3S_TOKEN=$DEMO_K3S_TOKEN sh -s - server --cluster-init $EXTRAS --kube-apiserver-arg="default-not-ready-toleration-seconds=20" --kube-apiserver-arg="default-unreachable-toleration-seconds=20" --write-kubeconfig-mode 644
+  curl -sfL https://get.k3s.io |INSTALL_K3S_VERSION=v1.24.17+k3s1 K3S_TOKEN=$DEMO_K3S_TOKEN sh -s - server --cluster-init $EXTRAS --kube-apiserver-arg="default-not-ready-toleration-seconds=20" --kube-apiserver-arg="default-unreachable-toleration-seconds=20" --write-kubeconfig-mode 644
   exit 0
 fi
 
