@@ -32,7 +32,7 @@ spec:
             - name: DB_PORT
               value: "3306"
             - name: DB_URL
-              value: cluster1-haproxy.default.svc.cluster.local
+              value: cluster1-haproxy.lower.svc.cluster.local
             - name: SAMPLE_DATASET
               value: "true"
       containers:
@@ -48,7 +48,7 @@ spec:
             - name: DB_PORT
               value: "3306"
             - name: DB_URL
-              value: cluster1-haproxy.default.svc.cluster.local
+              value: cluster1-haproxy.lower.svc.cluster.local
             - name: NODE_ID
               value: e7a5235d-cb6f-4864-a96e-a8686f36e599
         livenessProbe:
