@@ -35,19 +35,19 @@ echo "Using token \"$DEMO_K3S_TOKEN\""
 
 if test $IS_WORKER = 0 -a $IS_MASTER = 1 -a $MASTER_IP = 0; then
   echo "Setting up first k3s master"
-  curl -sfL https://get.k3s.io |INSTALL_K3S_VERSION=v1.24.17+k3s1 K3S_TOKEN=$DEMO_K3S_TOKEN sh -s - server --cluster-init $EXTRAS --kube-apiserver-arg="default-not-ready-toleration-seconds=20" --kube-apiserver-arg="default-unreachable-toleration-seconds=20" --write-kubeconfig-mode 644
+  curl -sfL https://get.k3s.io |INSTALL_K3S_VERSION=v1.24.17+k3s1 K3S_TOKEN=$DEMO_K3S_TOKEN sh -s - server --cluster-init $EXTRAS --kube-apiserver-arg="default-not-ready-toleration-seconds=20" --kube-apiserver-arg="default-unreachable-toleration-seconds=20" --write-kubeconfig-mode 644 --cluster-cidr="10.48.0.0/16" --service-cidr="10.50.0.0/16"
   exit 0
 fi
 
 if test $MASTER_IP != 0 -a $IS_WORKER = 1; then
   echo "Installing worker"
-  curl -sfL https://get.k3s.io |INSTALL_K3S_VERSION=v1.24.17+k3s1 K3S_URL=https://$MASTER_IP:6443 K3S_TOKEN=$DEMO_K3S_TOKEN sh -
+  curl -sfL https://get.k3s.io |INSTALL_K3S_VERSION=v1.24.17+k3s1 K3S_URL=https://$MASTER_IP:6443 K3S_TOKEN=$DEMO_K3S_TOKEN sh - --cluster-cidr="10.48.0.0/16" --service-cidr="10.50.0.0/16"
   exit 0
 fi
 
 if test $IS_MASTER != 0 -a $IS_WORKER = 0 -a $MASTER_IP != 0; then
   echo "Installing and joining master"
-  curl -sfL https://get.k3s.io |INSTALL_K3S_VERSION=v1.24.17+k3s1 K3S_TOKEN=$DEMO_K3S_TOKEN sh -s - server --server https://$MASTER_IP:6443 $EXTRAS --kube-apiserver-arg="default-not-ready-toleration-seconds=20" --kube-apiserver-arg="default-unreachable-toleration-seconds=20" --write-kubeconfig-mode 644
+  curl -sfL https://get.k3s.io |INSTALL_K3S_VERSION=v1.24.17+k3s1 K3S_TOKEN=$DEMO_K3S_TOKEN sh -s - server --server https://$MASTER_IP:6443 $EXTRAS --kube-apiserver-arg="default-not-ready-toleration-seconds=20" --kube-apiserver-arg="default-unreachable-toleration-seconds=20" --write-kubeconfig-mode 644 --cluster-cidr="10.48.0.0/16" --service-cidr="10.50.0.0/16"
   exit 0
 fi
 
