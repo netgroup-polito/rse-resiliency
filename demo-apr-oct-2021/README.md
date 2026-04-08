@@ -64,6 +64,8 @@ OpenPDC manager is a windows-only application that offers a UI for the database 
 
 1. Download and install openPDC manager from [here](https://github.com/GridProtectionAlliance/openPDC/releases/tag/v2.4).
 
+1.1 Download and install MySQL Connector from [here](https://dev.mysql.com/downloads/connector/net/6.2.html).
+
 2. If OpenPDC and the manager are already installed on the machine, check that thes service is not running, otherwise the port forwarding in the next step will not work.
 
 32. Enable port forwarding ssh-ing to the remote k8s node using this command (based on the deployment):
